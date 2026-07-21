@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UKCEH Pathogen Prioritisation Portal</title>
   <meta name="description" content="Interactive pathogen prioritisation and risk ranking portal for bathing water sites. Recalculates risk in real time based on site relevance and national weights.">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=2.0">
   <link rel="shortcut icon" href="UKCEH logos/UKCEH_Avatar_400x400.jpg" type="image/x-icon">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -419,8 +419,9 @@
     <p style="margin-top: 0.5rem; color: var(--text-muted);">
       Disclaimer: This tool provides a risk prioritization framework based on public-health evidence guidelines. It is intended for monitoring planning and environmental risk modeling.
     </p>
+    <p style="margin-top: 1rem; font-size: 0.7rem; color: var(--text-muted);" id="debug-file-path"></p>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.0"></script>
 </body>
 </html>

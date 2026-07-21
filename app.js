@@ -2051,6 +2051,12 @@ document.addEventListener("DOMContentLoaded", () => {
   setupFilters();
   recalculateAndRender();
   
+  // Render current loaded path in footer for debugging duplicate folders
+  const debugPath = document.getElementById("debug-file-path");
+  if (debugPath) {
+    debugPath.innerHTML = `Loaded from: <code style="word-break:break-all; background: rgba(0,0,0,0.05); padding: 0.2rem 0.4rem; border-radius: var(--radius-sm);">${window.location.href}</code>`;
+  }
+  
   // Wire up Geospatial map controls
   const btnLoad = document.getElementById("btn-load-ea-api");
   if (btnLoad) {
