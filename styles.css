@@ -499,11 +499,14 @@ main {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: 50px;
-  padding: 3px;
-  flex: 1;
-  min-width: 280px;
+  padding: 2px 4px;
+  min-width: 250px;
   max-width: 400px;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.filter-bar .search-bar-pill-container {
+  flex: 1; /* grows horizontally in row layout */
 }
 
 .search-bar-pill-container:focus-within {
@@ -515,9 +518,9 @@ main {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 0.4rem 1rem;
+  padding: 0.3rem 0.75rem;
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-primary);
   outline: none;
 }
@@ -531,9 +534,9 @@ main {
   color: #ffffff;
   border: none;
   border-radius: 50px;
-  padding: 0.45rem 1.25rem;
+  padding: 0.35rem 1rem;
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
   transition: background-color var(--transition-fast), transform var(--transition-fast);
