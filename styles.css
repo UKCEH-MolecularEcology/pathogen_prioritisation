@@ -187,7 +187,7 @@ main {
 /* Dashboard Grid Layout */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 310px 1fr 310px;
+  grid-template-columns: 280px minmax(0, 1fr) 280px;
   gap: 1.5rem;
   align-items: start;
 }
@@ -206,9 +206,9 @@ main {
   grid-row: 1;
 }
 
-@media (max-width: 1550px) {
+@media (max-width: 1450px) {
   .dashboard-grid {
-    grid-template-columns: 310px 1fr;
+    grid-template-columns: 280px minmax(0, 1fr);
   }
   .dashboard-grid > *:nth-child(1) { /* Site Levers */
     grid-column: 1;
@@ -433,18 +433,7 @@ main {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  grid-column: 2;
-}
-
-@media (max-width: 1400px) {
-  .main-display-panel {
-    grid-column: 2;
-  }
-}
-@media (max-width: 992px) {
-  .main-display-panel {
-    grid-column: 1;
-  }
+  min-width: 0;
 }
 
 .tabs-navigation {
