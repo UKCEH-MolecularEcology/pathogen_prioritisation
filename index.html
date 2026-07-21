@@ -109,11 +109,9 @@
         <!-- Tab 1: Pathogen Ranking Table -->
         <div class="tab-content active" id="tab-content-ranking">
           <div class="filter-bar">
-            <div class="search-input-wrapper">
-              <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input type="text" id="search-input" class="search-input" placeholder="Search pathogen or rationale...">
+            <div class="search-bar-pill-container">
+              <input type="text" id="search-input" class="search-input-pill" placeholder="Search pathogen or rationale...">
+              <button class="search-pill-button" id="btn-search-trigger">Search</button>
             </div>
             <div class="filters-wrapper">
               <select id="filter-category" class="filter-select">
@@ -174,11 +172,9 @@
             <div class="map-layout-split">
               <!-- Site Directory Sidebar -->
               <div class="map-sidebar">
-                <div class="search-input-wrapper" style="margin-bottom:0.75rem;">
-                  <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input type="text" id="map-search-input" class="search-input" style="padding:0.4rem 1rem 0.4rem 2rem; font-size:0.8rem;" placeholder="Search locations...">
+                <div class="search-bar-pill-container" style="margin-bottom:0.75rem;">
+                  <input type="text" id="map-search-input" class="search-input-pill" style="padding:0.4rem 1rem; font-size:0.8rem;" placeholder="Search locations...">
+                  <button class="search-pill-button" id="btn-map-search-trigger" style="padding: 0.35rem 1rem; font-size: 0.75rem;">Search</button>
                 </div>
                 <div class="map-site-list" id="map-site-list">
                   <!-- Populated dynamically -->

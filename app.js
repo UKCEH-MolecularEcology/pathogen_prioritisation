@@ -2007,6 +2007,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   
+  // Merged Search Pill Triggers
+  const btnSearchTrigger = document.getElementById("btn-search-trigger");
+  if (btnSearchTrigger) {
+    btnSearchTrigger.addEventListener("click", () => {
+      const input = document.getElementById("search-input");
+      if (input) {
+        state.searchQuery = input.value;
+        recalculateAndRender();
+      }
+    });
+  }
+
+  const btnMapSearchTrigger = document.getElementById("btn-map-search-trigger");
+  if (btnMapSearchTrigger) {
+    btnMapSearchTrigger.addEventListener("click", () => {
+      const input = document.getElementById("map-search-input");
+      if (input) {
+        mapSearchQuery = input.value;
+        filterMapSites();
+      }
+    });
+  }
+  
   // Close modal events
   const modal = document.getElementById("detail-modal");
   modal.addEventListener("click", (e) => {
