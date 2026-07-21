@@ -1633,6 +1633,78 @@ const MAPPED_SITES = [
       sentinel: 3,
       site_influence: 40
     }
+  },
+  {
+    id: 1011,
+    name: "Wallingford Beach, River Thames",
+    lat: 51.6001,
+    lng: -1.1203,
+    region: "Thames (Inland River)",
+    undertaker: "Thames Water",
+    classification: "Sufficient",
+    levers: {
+      human_sewage: 4,
+      agriculture: 2,
+      urban: 2,
+      riverine: 5,
+      climate: 2,
+      sentinel: 3,
+      site_influence: 40
+    }
+  },
+  {
+    id: 1012,
+    name: "River Deben at Woodbridge",
+    lat: 52.0935,
+    lng: 1.3204,
+    region: "Anglian (Estuary/Tidal River)",
+    undertaker: "Anglian Water",
+    classification: "Sufficient",
+    levers: {
+      human_sewage: 3,
+      agriculture: 3,
+      urban: 2,
+      riverine: 4,
+      climate: 2,
+      sentinel: 3,
+      site_influence: 40
+    }
+  },
+  {
+    id: 1013,
+    name: "Wolvercote Mill Stream",
+    lat: 51.7850,
+    lng: -1.2880,
+    region: "Thames (Inland River)",
+    undertaker: "Thames Water",
+    classification: "Poor",
+    levers: {
+      human_sewage: 5,
+      agriculture: 2,
+      urban: 3,
+      riverine: 5,
+      climate: 2,
+      sentinel: 5,
+      site_influence: 50
+    }
+  },
+  {
+    id: 1014,
+    name: "Coniston Water",
+    lat: 54.3644,
+    lng: -3.0735,
+    region: "North West (Lake)",
+    undertaker: "United Utilities",
+    classification: "Excellent",
+    levers: {
+      human_sewage: 1,
+      agriculture: 2,
+      urban: 1,
+      riverine: 1,
+      climate: 2,
+      sentinel: 1,
+      site_influence: 20
+    }
   }
 ];
 
