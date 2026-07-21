@@ -1256,6 +1256,11 @@ function setupTabs() {
         content.classList.remove("active");
       });
       document.getElementById(`tab-content-${tabName}`).classList.add("active");
+      
+      // Initialize Leaflet map when map tab becomes active to prevent rendering bugs
+      if (tabName === "map") {
+        setTimeout(initMap, 50);
+      }
     });
   });
 }
@@ -1441,6 +1446,456 @@ function closeModal() {
   const modal = document.getElementById("detail-modal");
   modal.classList.remove("active");
   document.body.style.overflow = "";
+}
+
+// ==========================================
+// GEOSPATIAL MAP DATABASE & LOGIC (LEAFLET)
+// ==========================================
+
+// Pre-cached UK Bathing Waters representing regional variations & levers
+const MAPPED_SITES = [
+  {
+    id: 1001,
+    name: "River Wharfe at Ilkley",
+    lat: 53.9298,
+    lng: -1.8211,
+    region: "Yorkshire (Inland River)",
+    undertaker: "Yorkshire Water",
+    classification: "Poor",
+    levers: {
+      human_sewage: 4,
+      agriculture: 4,
+      urban: 3,
+      riverine: 5,
+      climate: 1,
+      sentinel: 5,
+      site_influence: 50
+    }
+  },
+  {
+    id: 1002,
+    name: "Brighton Central Beach",
+    lat: 50.8202,
+    lng: -0.1415,
+    region: "South East (Coastal)",
+    undertaker: "Southern Water",
+    classification: "Good",
+    levers: {
+      human_sewage: 3,
+      agriculture: 1,
+      urban: 4,
+      riverine: 1,
+      climate: 2,
+      sentinel: 2,
+      site_influence: 30
+    }
+  },
+  {
+    id: 1003,
+    name: "Windermere (Rayrigg Meadow)",
+    lat: 54.3725,
+    lng: -2.9189,
+    region: "North West (Lake)",
+    undertaker: "United Utilities",
+    classification: "Sufficient",
+    levers: {
+      human_sewage: 4,
+      agriculture: 3,
+      urban: 2,
+      riverine: 2,
+      climate: 3,
+      sentinel: 3,
+      site_influence: 40
+    }
+  },
+  {
+    id: 1004,
+    name: "Blackpool Sands (Devon)",
+    lat: 50.2743,
+    lng: -3.6121,
+    region: "South West (Coastal)",
+    undertaker: "South West Water",
+    classification: "Excellent",
+    levers: {
+      human_sewage: 1,
+      agriculture: 2,
+      urban: 1,
+      riverine: 1,
+      climate: 2,
+      sentinel: 1,
+      site_influence: 20
+    }
+  },
+  {
+    id: 1005,
+    name: "Camber Sands",
+    lat: 50.9329,
+    lng: 0.7963,
+    region: "South East (Coastal)",
+    undertaker: "Southern Water",
+    classification: "Excellent",
+    levers: {
+      human_sewage: 1,
+      agriculture: 2,
+      urban: 1,
+      riverine: 1,
+      climate: 2,
+      sentinel: 1,
+      site_influence: 20
+    }
+  },
+  {
+    id: 1006,
+    name: "West Wittering Beach",
+    lat: 50.7816,
+    lng: -0.9024,
+    region: "South East (Coastal)",
+    undertaker: "Southern Water",
+    classification: "Excellent",
+    levers: {
+      human_sewage: 1,
+      agriculture: 1,
+      urban: 1,
+      riverine: 1,
+      climate: 2,
+      sentinel: 1,
+      site_influence: 20
+    }
+  },
+  {
+    id: 1007,
+    name: "Spittal Beach (Tweed)",
+    lat: 55.7569,
+    lng: -1.9888,
+    region: "North East (Coastal)",
+    undertaker: "Northumbrian Water",
+    classification: "Good",
+    levers: {
+      human_sewage: 3,
+      agriculture: 3,
+      urban: 2,
+      riverine: 3,
+      climate: 2,
+      sentinel: 2,
+      site_influence: 30
+    }
+  },
+  {
+    id: 1008,
+    name: "Bamburgh Castle",
+    lat: 55.6110,
+    lng: -1.7079,
+    region: "North East (Coastal)",
+    undertaker: "Northumbrian Water",
+    classification: "Excellent",
+    levers: {
+      human_sewage: 1,
+      agriculture: 2,
+      urban: 1,
+      riverine: 1,
+      climate: 2,
+      sentinel: 1,
+      site_influence: 20
+    }
+  },
+  {
+    id: 1009,
+    name: "Scarborough South Bay",
+    lat: 54.2798,
+    lng: -0.3956,
+    region: "Yorkshire (Coastal)",
+    undertaker: "Yorkshire Water",
+    classification: "Poor",
+    levers: {
+      human_sewage: 4,
+      agriculture: 3,
+      urban: 4,
+      riverine: 3,
+      climate: 2,
+      sentinel: 5,
+      site_influence: 50
+    }
+  },
+  {
+    id: 1010,
+    name: "River Thames at Port Meadow (Oxford)",
+    lat: 51.7765,
+    lng: -1.2825,
+    region: "Thames (Inland River)",
+    undertaker: "Thames Water",
+    classification: "Sufficient",
+    levers: {
+      human_sewage: 5,
+      agriculture: 3,
+      urban: 3,
+      riverine: 4,
+      climate: 2,
+      sentinel: 3,
+      site_influence: 40
+    }
+  }
+];
+
+// Geospatial State variables
+let map = null;
+let mapMarkers = [];
+let loadedEASites = [];
+let mapSearchQuery = "";
+
+// Initialize Leaflet Map
+function initMap() {
+  if (map) {
+    // Force Leaflet to recalculate container size
+    map.invalidateSize();
+    return;
+  }
+  
+  // Center on England/Wales
+  map = L.map('map-container').setView([53.0, -1.5], 6);
+  
+  // Load standard light map tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 18
+  }).addTo(map);
+  
+  // Render default pre-cached markers
+  renderMapMarkers(MAPPED_SITES);
+  renderMapSiteList(MAPPED_SITES);
+}
+
+// Render markers on the Leaflet map
+function renderMapMarkers(sites, clearExisting = false) {
+  if (!map) return;
+  
+  if (clearExisting) {
+    mapMarkers.forEach(m => map.removeLayer(m));
+    mapMarkers = [];
+  }
+  
+  sites.forEach(site => {
+    // Custom classification styling for popup badges
+    let badgeClass = "low";
+    if (site.classification === "Poor") badgeClass = "veryhigh";
+    else if (site.classification === "Sufficient") badgeClass = "high";
+    else if (site.classification === "Good") badgeClass = "medium";
+    
+    // Custom popup card HTML
+    const popupContent = `
+      <div class="map-popup-card">
+        <div class="map-popup-title">${site.name}</div>
+        <div class="map-popup-undertaker">${site.region} &bull; ${site.undertaker}</div>
+        <div style="margin-top: 0.15rem;">
+          <span class="badge-priority ${badgeClass}" style="font-size:0.65rem; padding: 0.1rem 0.35rem; display:inline-block; width:auto;">
+            EA Class: ${site.classification}
+          </span>
+        </div>
+        <div class="map-popup-stats">
+          <div class="map-popup-stat">
+            <span class="map-popup-stat-label">Sewage Load / CSO:</span>
+            <span class="map-popup-stat-val">${site.levers.human_sewage}/5</span>
+          </div>
+          <div class="map-popup-stat">
+            <span class="map-popup-stat-label">Agricultural Runoff:</span>
+            <span class="map-popup-stat-val">${site.levers.agriculture}/5</span>
+          </div>
+          <div class="map-popup-stat">
+            <span class="map-popup-stat-label">Sentinel Indicator:</span>
+            <span class="map-popup-stat-val">${site.levers.sentinel}/5</span>
+          </div>
+        </div>
+        <button class="btn-popup-select" onclick="selectMapSite(${site.id}, false)">
+          Load Site Levers
+        </button>
+      </div>
+    `;
+    
+    const marker = L.marker([site.lat, site.lng], { id: site.id }).addTo(map);
+    marker.bindPopup(popupContent);
+    mapMarkers.push(marker);
+  });
+  
+  // Adjust map bounds if loading a new dynamic dataset
+  if (clearExisting && mapMarkers.length > 0) {
+    const group = new L.featureGroup(mapMarkers);
+    map.fitBounds(group.getBounds().pad(0.05));
+  }
+}
+
+// Render the site listing in the map tab sidebar
+function renderMapSiteList(sites) {
+  const listContainer = document.getElementById("map-site-list");
+  if (!listContainer) return;
+  
+  // Filter list by map search query
+  const filtered = sites.filter(s => 
+    s.name.toLowerCase().includes(mapSearchQuery.toLowerCase()) ||
+    s.region.toLowerCase().includes(mapSearchQuery.toLowerCase()) ||
+    s.undertaker.toLowerCase().includes(mapSearchQuery.toLowerCase())
+  );
+  
+  if (filtered.length === 0) {
+    listContainer.innerHTML = `
+      <div style="font-size:0.75rem; color:var(--text-muted); text-align:center; padding:1.5rem;">
+        No sites found.
+      </div>
+    `;
+    return;
+  }
+  
+  listContainer.innerHTML = filtered.map(site => {
+    let badgeClass = "low";
+    if (site.classification === "Poor") badgeClass = "veryhigh";
+    else if (site.classification === "Sufficient") badgeClass = "high";
+    else if (site.classification === "Good") badgeClass = "medium";
+    
+    const activeClass = site.id === currentSelectedSiteId ? "active" : "";
+    
+    return `
+      <div class="map-site-item ${activeClass}" data-id="${site.id}" onclick="selectMapSite(${site.id}, true)">
+        <div class="map-site-name">${site.name}</div>
+        <div class="map-site-region">${site.region} &bull; ${site.undertaker}</div>
+        <div>
+          <span class="map-site-badge ${badgeClass}">${site.classification}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// Site trigger: updates state and recalculates pathogen priorities
+function selectMapSite(siteId, triggerMapPan = true) {
+  currentSelectedSiteId = siteId;
+  
+  const site = MAPPED_SITES.find(s => s.id === siteId) || loadedEASites.find(s => s.id === siteId);
+  if (!site) return;
+  
+  // Load site context levers into application state
+  state.siteLevers = { ...site.levers };
+  
+  // Sync sliders UI
+  Object.keys(state.siteLevers).forEach(key => {
+    const slider = document.getElementById(`slider-${key}`);
+    const valDisplay = document.getElementById(`val-${key}`);
+    if (slider) slider.value = state.siteLevers[key];
+    if (valDisplay) {
+      valDisplay.textContent = state.siteLevers[key] + (key === 'site_influence' ? '%' : '');
+    }
+  });
+  
+  // Recalculate pathogen list and rankings
+  recalculateAndRender();
+  
+  // Highlight active sidebar list item
+  document.querySelectorAll(".map-site-item").forEach(item => {
+    item.classList.remove("active");
+    if (parseInt(item.dataset.id) === siteId) {
+      item.classList.add("active");
+    }
+  });
+  
+  // Move map viewport
+  if (triggerMapPan && map) {
+    map.setView([site.lat, site.lng], 12);
+    const marker = mapMarkers.find(m => m.options.id === siteId);
+    if (marker) marker.openPopup();
+  }
+}
+
+// Filter the sidebar list
+function filterMapSites() {
+  const currentList = loadedEASites.length > 0 ? loadedEASites : MAPPED_SITES;
+  renderMapSiteList(currentList);
+}
+
+// Fetch live Environment Agency Bathing Water Quality dataset
+async function loadLiveEASites() {
+  const btn = document.getElementById("btn-load-ea-api");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `
+      <svg style="width:14px;height:14px;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12"/>
+      </svg>
+      Loading Live Defra API Data...
+    `;
+    
+    // Add quick spin animation to styles if not present
+    if (!document.getElementById("spin-keyframes")) {
+      const style = document.createElement("style");
+      style.id = "spin-keyframes";
+      style.innerHTML = "@keyframes spin { to { transform: rotate(360deg); } }";
+      document.head.appendChild(style);
+    }
+  }
+  
+  try {
+    const response = await fetch("https://environment.data.gov.uk/doc/bathing-water.json?_pageSize=500");
+    const json = await response.json();
+    const items = json.result.items;
+    
+    loadedEASites = items.map((item, index) => {
+      const name = item.name._value;
+      const lat = item.samplingPoint ? item.samplingPoint.lat : null;
+      const lng = item.samplingPoint ? item.samplingPoint.long : null;
+      if (!lat || !lng) return null;
+      
+      const undertaker = item.appointedSewerageUndertaker ? item.appointedSewerageUndertaker.name._value : "Unknown Water";
+      const classification = item.latestComplianceAssessment && item.latestComplianceAssessment.complianceClassification 
+        ? item.latestComplianceAssessment.complianceClassification.name._value 
+        : "Not Classified";
+      
+      const isCoastal = item.type && item.type.some(t => t.includes("CoastalBathingWater"));
+      const isRiver = item.type && item.type.some(t => t.includes("RiverBathingWater"));
+      
+      // Map EA classification directly to Measured Sentinel Burden lever
+      let sentinelVal = 2;
+      let influenceVal = 30;
+      if (classification === "Excellent") { sentinelVal = 1; influenceVal = 20; }
+      else if (classification === "Good") { sentinelVal = 2; influenceVal = 30; }
+      else if (classification === "Sufficient") { sentinelVal = 3; influenceVal = 40; }
+      else if (classification === "Poor") { sentinelVal = 5; influenceVal = 50; }
+      
+      // Dynamic baseline levers based on EA bathing water profile classifications
+      const levers = {
+        human_sewage: isCoastal ? 2 : 4,
+        agriculture: isCoastal ? 1 : 3,
+        urban: isCoastal ? 1 : 2,
+        riverine: isRiver ? 5 : (isCoastal ? 1 : 3),
+        climate: isCoastal ? 2 : 2,
+        sentinel: sentinelVal,
+        site_influence: influenceVal
+      };
+      
+      return {
+        id: 2000 + index, // unique dynamic ID offset
+        name: name,
+        lat: lat,
+        lng: lng,
+        region: item.regionalOrganization ? item.regionalOrganization.name._value : "England",
+        undertaker: undertaker,
+        classification: classification,
+        levers: levers
+      };
+    }).filter(Boolean);
+    
+    // Clear and redraw map markers
+    renderMapMarkers(loadedEASites, true);
+    renderMapSiteList(loadedEASites);
+    
+    if (btn) {
+      btn.textContent = `Loaded ${loadedEASites.length} EA Bathing Waters`;
+      btn.style.backgroundColor = "var(--ukceh-green)";
+      btn.style.color = "#0c181a";
+    }
+  } catch (err) {
+    console.error("Error fetching live EA sites:", err);
+    alert("Could not load live Environment Agency data. Standard pre-cached sites remain available.");
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Retry Loading Live EA Data";
+    }
+  }
 }
 
 // Initialize Application

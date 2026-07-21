@@ -1245,6 +1245,160 @@ main {
   color: var(--ukceh-teal);
 }
 
+/* Geospatial Map Styling */
+.map-layout-split {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1.25rem;
+  align-items: stretch;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 1000px) {
+  .map-layout-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.map-sidebar {
+  display: flex;
+  flex-direction: column;
+  max-height: 550px;
+}
+
+.map-site-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.map-site-item {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--transition-fast);
+}
+
+.map-site-item:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--border-medium);
+}
+
+.map-site-item.active {
+  background-color: rgba(0, 90, 112, 0.05);
+  border-color: var(--ukceh-teal);
+}
+
+.map-site-name {
+  font-family: var(--font-headings);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.map-site-region {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.map-site-badge {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 0.35rem;
+  border: 1px solid var(--border-medium);
+}
+
+/* Customizing Leaflet popups to fit UKCEH brand guidelines */
+.leaflet-popup-content-wrapper {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-medium) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--font-body) !important;
+  padding: 0.5rem !important;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--bg-surface) !important;
+  border: 1px solid var(--border-medium) !important;
+}
+
+.map-popup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.1rem;
+  min-width: 220px;
+}
+
+.map-popup-title {
+  font-family: var(--font-headings);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--ukceh-teal-dark);
+}
+
+.map-popup-undertaker {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.map-popup-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  border-top: 1px dashed rgba(0, 90, 112, 0.1);
+  padding-top: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.map-popup-stat {
+  display: flex;
+  justify-content: space-between;
+}
+
+.map-popup-stat-label {
+  color: var(--text-secondary);
+}
+
+.map-popup-stat-val {
+  font-weight: 700;
+  color: var(--ukceh-teal);
+}
+
+.btn-popup-select {
+  background-color: var(--ukceh-teal);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 0.4rem;
+  width: 100%;
+  transition: background-color var(--transition-fast);
+}
+
+.btn-popup-select:hover {
+  background-color: var(--ukceh-teal-light);
+}
+
 /* Footer style */
 footer {
   text-align: center;
