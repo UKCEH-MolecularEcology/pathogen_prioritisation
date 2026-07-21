@@ -172,10 +172,10 @@
             <div class="map-layout-split">
               <!-- Site Directory Sidebar -->
               <div class="map-sidebar">
-                <div class="search-bar-pill-container" style="margin-bottom:0.75rem; position:relative;">
-                  <input type="text" id="map-search-input" class="search-input-pill" style="padding:0.4rem 1rem; font-size:0.8rem;" placeholder="Search locations...">
+                <div class="search-bar-pill-container" style="margin-bottom:0.75rem; position:relative; flex:none; height:36px; padding:2px 4px;">
+                  <input type="text" id="map-search-input" class="search-input-pill" style="padding:0.3rem 0.75rem; font-size:0.8rem;" placeholder="Search locations...">
                   <button class="search-pill-button" id="btn-map-search-trigger" style="padding: 0.35rem 1rem; font-size: 0.75rem;">Search</button>
-                  <div class="search-suggestions-dropdown" id="map-search-suggestions" style="display:none;"></div>
+                  <div class="search-suggestions-dropdown" id="map-search-suggestions" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1050; background-color:var(--bg-surface); border:1px solid var(--border-medium); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); max-height:220px; overflow-y:auto; flex-direction:column; margin-top:6px;"></div>
                 </div>
                 <div class="map-site-list" id="map-site-list">
                   <!-- Populated dynamically -->
