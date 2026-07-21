@@ -1643,6 +1643,7 @@ let loadedEASites = [];
 let mapSearchQuery = "";
 
 // Initialize Leaflet Map
+// Initialize Leaflet Map
 function initMap() {
   if (map) {
     // Force Leaflet to recalculate container size
@@ -1659,9 +1660,12 @@ function initMap() {
     maxZoom: 18
   }).addTo(map);
   
-  // Render default pre-cached markers
+  // Render default pre-cached markers first for immediate response
   renderMapMarkers(MAPPED_SITES);
   renderMapSiteList(MAPPED_SITES);
+  
+  // Automatically fetch live Environment Agency dataset (all UK sites) on load
+  loadLiveEASites();
 }
 
 // Render markers on the Leaflet map
@@ -1808,16 +1812,16 @@ function filterMapSites() {
   renderMapSiteList(currentList);
 }
 
-// Fetch live Environment Agency Bathing Water Quality dataset
+// Fetch live Environment Agency Bathing Water Quality dataset (up to 1000 sites to capture all designated UK waters)
 async function loadLiveEASites() {
   const btn = document.getElementById("btn-load-ea-api");
   if (btn) {
     btn.disabled = true;
     btn.innerHTML = `
-      <svg style="width:14px;height:14px;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg style="width:14px;height:14px;animation:spin 1s linear infinite;margin-right:4px;display:inline-block;vertical-align:middle;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12"/>
       </svg>
-      Loading Live Defra API Data...
+      Loading Live UK Bathing Waters...
     `;
     
     // Add quick spin animation to styles if not present
@@ -1830,7 +1834,7 @@ async function loadLiveEASites() {
   }
   
   try {
-    const response = await fetch("https://environment.data.gov.uk/doc/bathing-water.json?_pageSize=500");
+    const response = await fetch("https://environment.data.gov.uk/doc/bathing-water.json?_pageSize=1000");
     const json = await response.json();
     const items = json.result.items;
     
@@ -1884,16 +1888,25 @@ async function loadLiveEASites() {
     renderMapSiteList(loadedEASites);
     
     if (btn) {
-      btn.textContent = `Loaded ${loadedEASites.length} EA Bathing Waters`;
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Refresh Live Sites (${loadedEASites.length} loaded)
+      `;
       btn.style.backgroundColor = "var(--ukceh-green)";
       btn.style.color = "#0c181a";
     }
   } catch (err) {
     console.error("Error fetching live EA sites:", err);
-    alert("Could not load live Environment Agency data. Standard pre-cached sites remain available.");
+    // Quiet fallback state rather than disruptive alerts
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "Retry Loading Live EA Data";
+      btn.textContent = "Offline Mode (Using Cached Sites)";
+      btn.style.backgroundColor = "rgba(220, 38, 38, 0.08)";
+      btn.style.color = "#dc2626";
+      btn.style.borderColor = "rgba(220, 38, 38, 0.2)";
     }
   }
 }
@@ -1907,6 +1920,20 @@ document.addEventListener("DOMContentLoaded", () => {
   setupTableSorting();
   setupFilters();
   recalculateAndRender();
+  
+  // Wire up Geospatial map controls
+  const btnLoad = document.getElementById("btn-load-ea-api");
+  if (btnLoad) {
+    btnLoad.addEventListener("click", loadLiveEASites);
+  }
+  
+  const mapSearchInput = document.getElementById("map-search-input");
+  if (mapSearchInput) {
+    mapSearchInput.addEventListener("input", (e) => {
+      mapSearchQuery = e.target.value;
+      filterMapSites();
+    });
+  }
   
   // Close modal events
   const modal = document.getElementById("detail-modal");
