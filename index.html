@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UKCEH Pathogen Prioritisation Portal</title>
+  <meta name="description" content="Interactive pathogen prioritisation and risk ranking portal for bathing water sites. Recalculates risk in real time based on site relevance and national weights.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="shortcut icon" href="UKCEH logos/UKCEH_Avatar_400x400.jpg" type="image/x-icon">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="logo-container">
+      <img src="UKCEH logos/UKCEH_Logo_Tagline_White_Data.png" alt="UKCEH Logo" class="logo-img" onerror="this.src='UKCEH logos/UKCEH_Logo_Master_White.png'">
+      <div class="brand-divider"></div>
+      <div class="header-titles">
+        <h1>Pathogen Prioritisation Portal</h1>
+        <p>Bathing Water Microbial Hazard Priority Model</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="resetToDefaults()">
+        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12" />
+        </svg>
+        Reset Defaults
+      </button>
+      <button class="btn-primary" onclick="state.activeTab='guidance'; document.querySelector('[data-tab=guidance]').click();">
+        Methodology & Guidance
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main>
+    <div class="dashboard-grid">
+      
+      <!-- Left Column: Site Context Levers -->
+      <aside class="panel-card">
+        <div class="panel-header">
+          <h2>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            Site Context Levers
+          </h2>
+          <span style="font-size:0.75rem;color:var(--text-muted);">Adjust Levers (0-5)</span>
+        </div>
+        
+        <!-- Influence blending slider -->
+        <div class="influence-panel">
+          <div class="control-item">
+            <div class="control-label-row">
+              <label class="control-label" for="slider-site_influence" style="font-weight:600;">
+                Site Influence on Ranking
+                <div class="control-desc">0% = Pure National Priority Table; 100% = Pure Local Site Fit.</div>
+              </label>
+              <span class="control-value" id="val-site_influence">30%</span>
+            </div>
+            <div class="slider-container" style="margin-top:0.25rem;">
+              <span style="font-size:0.75rem;color:var(--text-muted);">0%</span>
+              <input type="range" class="custom-slider" id="slider-site_influence" min="0" max="100" step="5" value="30">
+              <span style="font-size:0.75rem;color:var(--text-muted);">100%</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Sliders generated dynamically in app.js -->
+        <div class="control-group" id="site-controls-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </aside>
+
+      <!-- Center Column: Calculations, Table & Details -->
+      <div class="main-display-panel">
+        
+        <!-- National Weights Panel (Folds under the table tabs or stands out) -->
+        <section class="panel-card">
+          <div class="panel-header">
+            <h2>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+              </svg>
+              National Hazard Weights
+            </h2>
+            <span style="font-size:0.75rem;color:var(--text-muted);">
+              Total Weight: <span id="val-total_weight" style="font-weight:700;">100</span>
+            </span>
+          </div>
+          
+          <div class="control-group" id="national-controls-list" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:1rem;">
+            <!-- Populated by JavaScript -->
+          </div>
+        </section>
+
+        <!-- Main Navigation Tabs -->
+        <nav class="tabs-navigation">
+          <button class="tab-btn active" data-tab="ranking">Pathogen Ranking</button>
+          <button class="tab-btn" data-tab="evidence">Evidence Basis</button>
+          <button class="tab-btn" data-tab="references">References</button>
+          <button class="tab-btn" data-tab="guidance">Guidance & Method</button>
+        </nav>
+
+        <!-- Tab 1: Pathogen Ranking Table -->
+        <div class="tab-content active" id="tab-content-ranking">
+          <div class="filter-bar">
+            <div class="search-input-wrapper">
+              <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" id="search-input" class="search-input" placeholder="Search pathogen or rationale...">
+            </div>
+            <div class="filters-wrapper">
+              <select id="filter-category" class="filter-select">
+                <option value="all">All Categories</option>
+                <option value="Core causal bathing-water pathogens">Core Causal Pathogens</option>
+                <option value="Rare severe / opportunistic water-associated hazard">Rare Severe / Opportunistic</option>
+                <option value="Not in core bathing-water pathogen ranking">Not in Core Ranking</option>
+              </select>
+              <select id="filter-policy" class="filter-select">
+                <option value="all">All Policy Status</option>
+                <option value="Core">Core</option>
+                <option value="Conditional">Conditional</option>
+                <option value="Watch">Watch</option>
+                <option value="Not routine target">Not Routine</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-sort="rank" class="sort-asc">Rank</th>
+                  <th data-sort="pathogen">Pathogen / Hazard</th>
+                  <th data-sort="category">Category</th>
+                  <th data-sort="policy_status">Policy Status</th>
+                  <th data-sort="nationalScore" style="text-align:right;">National Score</th>
+                  <th data-sort="siteRelevanceScore" style="text-align:right;">Site Fit</th>
+                  <th data-sort="finalScore" style="text-align:right;">Final Score</th>
+                  <th style="text-align:center;">Priority</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: Evidence Basis definitions -->
+        <div class="tab-content" id="tab-content-evidence">
+          <div class="doc-content-wrapper">
+            <h3>Evidence Basis Reference Guide</h3>
+            <p>The framework utilizes structured evidence parameters to score national hazard strength and local site suitability. Use the card index below to interpret the significance of each model criteria and lever.</p>
+            <div class="doc-grid" id="evidence-grid">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Literature References -->
+        <div class="tab-content" id="tab-content-references">
+          <div class="doc-content-wrapper">
+            <h3>Scientific References & Literature Base</h3>
+            <p>The model constraints and scores are anchored to primary environmental science research, regulatory standards, and public-health guidelines. Key references utilized are detailed below:</p>
+            <div class="ref-list" id="ref-list">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Guidance Instructions -->
+        <div class="tab-content" id="tab-content-guidance">
+          <div class="doc-content-wrapper">
+            <h3>Methodology & Guidance Manual</h3>
+            
+            <div class="guidance-section">
+              <p>The pathogen prioritisation model bridges the gap between a generalized national view of public-health risk and local, context-specific site pressures. Rather than applying a single uniform monitoring rule, the tool allows local operators, regulators, and scientists to model how pathogen risks shift based on water quality data and environmental pressures.</p>
+            </div>
+            
+            <div class="guidance-section">
+              <h4 style="color:var(--ukceh-green);font-family:var(--font-headings);margin-top:0.5rem;">Quick Start Instructions</h4>
+              <div class="guidance-step-list">
+                <div class="guidance-step">
+                  <div class="step-num">1</div>
+                  <div class="step-text"><strong>Review defaults:</strong> Select the default parameters by clicking "Reset Defaults" to establish the baseline public-health risk list.</div>
+                </div>
+                <div class="guidance-step">
+                  <div class="step-num">2</div>
+                  <div class="step-text"><strong>Adjust site levers:</strong> Modify local context indicators (0 for absent, 5 for dominant) based on the site's environment.</div>
+                </div>
+                <div class="guidance-step">
+                  <div class="step-num">3</div>
+                  <div class="step-text"><strong>Configure weights:</strong> Modify national hazard criteria weights if there is local scientific justification to do so.</div>
+                </div>
+                <div class="guidance-step">
+                  <div class="step-num">4</div>
+                  <div class="step-text"><strong>Check Top 10:</strong> Inspect the sidebar listing on the right to identify the hazards that require the most monitoring attention.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert-box">
+              <div class="alert-box-title">
+                <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Core Math Blend Formula
+              </div>
+              <p style="font-size:0.8rem;line-height:1.4;">
+                The model uses three distinct scores: a <strong>National Hazard Score</strong> (calculated from the 5 national weights), a <strong>Site Relevance Score</strong> (calculated from the 6 site levers), and a <strong>Final Blended Score</strong>.
+                <br><br>
+                <code>Final Score = (National Score * (1 - Site Influence)) + (Site Relevance Score * Site Influence)</code>
+                <br><br>
+                At <strong>0% Site Influence</strong>, the model acts as a purely national public-health table (ranking hazards solely by exposure efficiency, severity, persistence, shedding, and epidemiological confidence). At <strong>100% Site Influence</strong>, the model behaves as a pure site-fit tool, prioritizing hazards solely based on local physical vectors and indicator levels.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Live Top 10 List -->
+      <aside class="panel-card dynamic-sidebar">
+        <div class="panel-header">
+          <h2>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Top 10 Hazards
+          </h2>
+          <span style="font-size:0.75rem;color:var(--ukceh-green);font-weight:700;">Live Rank</span>
+        </div>
+        <div class="top-list" id="top-10-list">
+          <!-- Populated dynamically by JavaScript -->
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- Interactive Detail Modal -->
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-header-titles">
+          <h3 class="modal-title" id="modal-pathogen-name">Norovirus</h3>
+          <p class="modal-subtitle">
+            <span id="modal-category-text">Core causal bathing-water pathogens</span> &bull; 
+            <span id="modal-policy-badge" class="badge-policy">Core</span>
+          </p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Rationale -->
+        <div>
+          <h4 style="font-size:0.85rem;font-weight:600;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem;letter-spacing:0.05em;">Short Rationale</h4>
+          <p class="modal-rationale" id="modal-rationale-text">Dominant sewage-associated enteric viral priority with high shedding, low dose, high transmission and strong bathing relevance.</p>
+        </div>
+
+        <!-- Scores Breakdown -->
+        <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:1rem;">
+          <div style="background-color:var(--bg-card);padding:0.75rem;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border-light);">
+            <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Rank Position</div>
+            <div style="font-size:1.5rem;font-weight:800;color:var(--ukceh-green);margin-top:0.25rem;" id="modal-score-rank">#1</div>
+          </div>
+          <div style="background-color:var(--bg-card);padding:0.75rem;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border-light);">
+            <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">National Score</div>
+            <div style="font-size:1.5rem;font-weight:800;color:var(--text-primary);margin-top:0.25rem;" id="modal-score-national">92.0%</div>
+          </div>
+          <div style="background-color:var(--bg-card);padding:0.75rem;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border-light);">
+            <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Site Relevance</div>
+            <div style="font-size:1.5rem;font-weight:800;color:var(--ukceh-teal-light);margin-top:0.25rem;" id="modal-score-site">70.0%</div>
+          </div>
+          <div style="background-color:var(--bg-card);padding:0.75rem;border-radius:var(--radius-sm);text-align:center;border:1px solid var(--border-light);">
+            <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;font-weight:600;">Priority Band</div>
+            <div style="margin-top:0.4rem;"><span id="modal-score-priority" class="badge-priority veryhigh" style="font-size:0.75rem;">Very High</span></div>
+          </div>
+        </div>
+
+        <!-- Blended Score Big Value -->
+        <div style="background-color:rgba(189, 204, 212, 0.04);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:1rem;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-family:var(--font-headings);font-weight:700;font-size:1.05rem;color:var(--text-primary);">Final Blended Score</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.1rem;">Combines national hazard profile and local site context levers.</div>
+          </div>
+          <div style="font-family:var(--font-headings);font-size:2rem;font-weight:900;color:var(--ukceh-green);" id="modal-score-final">85.4%</div>
+        </div>
+
+        <!-- Criteria Grid -->
+        <div class="modal-stats-grid">
+          <!-- National Criteria Rating -->
+          <div class="stat-group">
+            <div class="stat-group-title">National Hazard Ratings (1-5)</div>
+            <div class="stat-row">
+              <span class="stat-label">Exposure Efficiency / Dose</span>
+              <div class="stat-score-bar" id="modal-stat-exposure_efficiency"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Health Severity / Consequence</span>
+              <div class="stat-score-bar" id="modal-stat-health_consequence"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Source Shedding Pressure</span>
+              <div class="stat-score-bar" id="modal-stat-source_pressure"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Persistence & Transport</span>
+              <div class="stat-score-bar" id="modal-stat-persistence"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Bathing Evidence Confidence</span>
+              <div class="stat-score-bar" id="modal-stat-bathing_evidence"></div>
+            </div>
+          </div>
+          
+          <!-- Site Fit Ratings -->
+          <div class="stat-group sewage-theme">
+            <div class="stat-group-title">Site Pathogen Fit (1-5)</div>
+            <div class="stat-row">
+              <span class="stat-label">Human Sewage / CSO Fit</span>
+              <div class="stat-score-bar" id="modal-stat-sewage_fit"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Agriculture / Runoff Fit</span>
+              <div class="stat-score-bar" id="modal-stat-agriculture_fit"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Urban Runoff / Stormwater Fit</span>
+              <div class="stat-score-bar" id="modal-stat-urban_fit"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Riverine / Event Fit</span>
+              <div class="stat-score-bar" id="modal-stat-riverine_fit"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Warm / Climate / Bloom Fit</span>
+              <div class="stat-score-bar" id="modal-stat-climate_fit"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Measured Sentinel Relevance</span>
+              <div class="stat-score-bar" id="modal-stat-sentinel_relevance"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Math Formulas Breakdown -->
+        <div class="math-breakdown-panel">
+          <div class="math-title">Math & Calculation Walkthrough</div>
+          <div>
+            <div class="math-calc-line" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.15rem;">National Component (using current weights):</div>
+            <div class="math-formula" id="formula-national">National Score = (5*25 + 3*15 + 5*25 + 4*10 + 5*25) / 100 / 5 * 100</div>
+          </div>
+          <div style="margin-top:0.25rem;">
+            <div class="math-calc-line" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.15rem;">Site Component (using current levers):</div>
+            <div class="math-formula" id="formula-site">Site Score = (5*4 + 2*3 + 3*3 + 5*3 + 2*2 + 3*3) / 18 / 5 * 100</div>
+          </div>
+          <div style="margin-top:0.25rem;">
+            <div class="math-calc-line" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.15rem;">Blended Result (using current site influence):</div>
+            <div class="math-formula" id="formula-final">Final Score = 92.0 * (1 - 30/100) + 70.0 * (30/100)</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 UK Centre for Ecology & Hydrology (UKCEH). All rights reserved. &bull; Pathogen Prioritisation Model &bull; Developed in collaboration with Dr. Andrew Singer.</p>
+    <p style="margin-top: 0.5rem; color: var(--text-muted);">
+      Disclaimer: This tool provides a risk prioritization framework based on public-health evidence guidelines. It is intended for monitoring planning and environmental risk modeling.
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
