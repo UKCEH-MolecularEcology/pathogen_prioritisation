@@ -1983,6 +1983,64 @@ async function loadLiveEASites() {
   }
 }
 
+// Render autocomplete suggestions dropdown as user types
+function updateMapSearchSuggestions(query) {
+  const dropdown = document.getElementById("map-search-suggestions");
+  if (!dropdown) return;
+  
+  if (!query || query.trim() === "") {
+    dropdown.innerHTML = "";
+    dropdown.style.display = "none";
+    return;
+  }
+  
+  const currentList = loadedEASites.length > 0 ? loadedEASites : MAPPED_SITES;
+  const filtered = currentList.filter(s => 
+    s.name.toLowerCase().includes(query.toLowerCase()) ||
+    s.region.toLowerCase().includes(query.toLowerCase()) ||
+    s.undertaker.toLowerCase().includes(query.toLowerCase())
+  ).slice(0, 8); // cap at 8 suggestions
+  
+  if (filtered.length === 0) {
+    dropdown.innerHTML = "";
+    dropdown.style.display = "none";
+    return;
+  }
+  
+  dropdown.innerHTML = filtered.map(site => `
+    <div class="suggestion-item" data-id="${site.id}">
+      <div class="suggestion-name">${site.name}</div>
+      <div class="suggestion-meta">
+        <span>${site.region} &bull; ${site.undertaker}</span>
+        <span style="font-weight:700;">${site.classification}</span>
+      </div>
+    </div>
+  `).join("");
+  
+  dropdown.style.display = "flex";
+  
+  // Bind click handlers to suggestion items
+  dropdown.querySelectorAll(".suggestion-item").forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const siteId = parseInt(item.dataset.id);
+      const site = currentList.find(s => s.id === siteId);
+      if (site) {
+        // Set search input value
+        const input = document.getElementById("map-search-input");
+        if (input) input.value = site.name;
+        mapSearchQuery = site.name;
+        
+        // Hide dropdown
+        dropdown.style.display = "none";
+        
+        // Trigger selection
+        selectMapSite(siteId, true);
+      }
+    });
+  });
+}
+
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
   initializeInfoTabs();
@@ -2004,6 +2062,20 @@ document.addEventListener("DOMContentLoaded", () => {
     mapSearchInput.addEventListener("input", (e) => {
       mapSearchQuery = e.target.value;
       filterMapSites();
+      updateMapSearchSuggestions(e.target.value);
+    });
+    
+    // Hide suggestions dropdown on blur
+    mapSearchInput.addEventListener("blur", () => {
+      setTimeout(() => {
+        const dropdown = document.getElementById("map-search-suggestions");
+        if (dropdown) dropdown.style.display = "none";
+      }, 200);
+    });
+    
+    // Show suggestions dropdown again if focused and has text
+    mapSearchInput.addEventListener("focus", (e) => {
+      updateMapSearchSuggestions(e.target.value);
     });
   }
   

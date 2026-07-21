@@ -1426,6 +1426,57 @@ main {
   background-color: var(--ukceh-teal-light);
 }
 
+}
+
+/* Autocomplete Suggestions Dropdown */
+.search-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1050;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.suggestion-item {
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--border-light);
+  text-align: left;
+  transition: background-color var(--transition-fast);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: rgba(0, 90, 112, 0.05);
+}
+
+.suggestion-name {
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.suggestion-meta {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  display: flex;
+  justify-content: space-between;
+}
+
 /* Footer style */
 footer {
   text-align: center;
