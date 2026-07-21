@@ -187,23 +187,58 @@ main {
 /* Dashboard Grid Layout */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 350px 1fr 350px;
+  grid-template-columns: 310px 1fr 310px;
   gap: 1.5rem;
   align-items: start;
 }
 
-@media (max-width: 1400px) {
+/* Default positions (3 columns) */
+.dashboard-grid > *:nth-child(1) { /* Site Levers */
+  grid-column: 1;
+  grid-row: 1;
+}
+.dashboard-grid > *:nth-child(2) { /* Main Content */
+  grid-column: 2;
+  grid-row: 1;
+}
+.dashboard-grid > *:nth-child(3) { /* Top 10 Hazards */
+  grid-column: 3;
+  grid-row: 1;
+}
+
+@media (max-width: 1550px) {
   .dashboard-grid {
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 310px 1fr;
   }
-  .dynamic-sidebar {
-    grid-column: 1 / -1;
+  .dashboard-grid > *:nth-child(1) { /* Site Levers */
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .dashboard-grid > *:nth-child(2) { /* Main Content */
+    grid-column: 2;
+    grid-row: 1 / span 2; /* spans full height on right */
+  }
+  .dashboard-grid > *:nth-child(3) { /* Top 10 Hazards */
+    grid-column: 1;
+    grid-row: 2; /* placed right under levers */
   }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1000px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+  .dashboard-grid > *:nth-child(1) { /* Site Levers */
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .dashboard-grid > *:nth-child(3) { /* Top 10 Hazards */
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .dashboard-grid > *:nth-child(2) { /* Main Content */
+    grid-column: 1;
+    grid-row: 3;
   }
 }
 
