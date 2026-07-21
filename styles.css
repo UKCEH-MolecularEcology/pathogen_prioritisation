@@ -657,21 +657,21 @@ main {
 }
 
 .badge-policy.core {
-  background-color: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
-  border-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(0, 90, 112, 0.06);
+  color: #005a70;
+  border-color: rgba(0, 90, 112, 0.15);
 }
 
 .badge-policy.conditional {
-  background-color: rgba(249, 115, 22, 0.08);
-  color: #ea580c;
-  border-color: rgba(249, 115, 22, 0.15);
+  background-color: rgba(217, 119, 6, 0.06);
+  color: #d97706;
+  border-color: rgba(217, 119, 6, 0.15);
 }
 
 .badge-policy.watch {
-  background-color: rgba(234, 179, 8, 0.08);
-  color: #b45309;
-  border-color: rgba(234, 179, 8, 0.15);
+  background-color: rgba(99, 102, 241, 0.06);
+  color: #4f46e5;
+  border-color: rgba(99, 102, 241, 0.15);
 }
 
 .score-cell {
